@@ -24,8 +24,8 @@ export default function DashboardContent() {
 
   // ✅ ссылка для клиента
   const botLink = master
-    ? `https://t.me/moinhelp_bot/app?startapp=${master.id}`
-    : "";
+  ? `https://t.me/moinhelp_bot?startapp=${master.id}`
+  : "";
 
   useEffect(() => {
     if (!masterId) return;
