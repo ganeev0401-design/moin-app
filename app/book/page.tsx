@@ -5,8 +5,9 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useParams } from "next/navigation";
+//import { useParams } from "next/navigation";
 import { getTelegramUser } from "@/lib/telegram";
+
 
 export default function BookPage() {
   //const { masterId } = useParams();
