@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useParams } from "next/navigation";
+import { getTelegramUser } from "@/lib/telegram";
 
 export default function BookPage() {
   const { masterId } = useParams();
@@ -10,6 +11,7 @@ export default function BookPage() {
   const [master, setMaster] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any>(null);
+  const [tgUser, setTgUser] = useState<any>(null);
 
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
@@ -26,6 +28,16 @@ export default function BookPage() {
     if (!masterId) return;
     loadMaster();
   }, [masterId]);
+
+  useEffect(() => {
+    const user = getTelegramUser();
+    setTgUser(user);
+
+    if (user?.first_name) {
+      setClientName(user.first_name);
+    }
+  }, []);
+
 
   const loadMaster = async () => {
     const m = await supabase
@@ -180,16 +192,19 @@ export default function BookPage() {
 
       <hr />
 
-      {/* CLIENT NAME */}
       <h3>Ваше имя</h3>
+
       <input
         value={clientName}
         onChange={(e) => setClientName(e.target.value)}
-        placeholder="Введите имя"
+        placeholder={
+          tgUser
+            ? "Имя из Telegram (можно изменить)"
+            : "Введите имя"
+        }
         style={{ padding: 10 }}
       />
 
-      <br />
       <br />
 
       {/* BOOK BUTTON */}
