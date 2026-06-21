@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useParams } from "next/navigation";
 import { getTelegramUser } from "@/lib/telegram";
 
 export default function BookPage() {
-  const { masterId } = useParams();
+  //const { masterId } = useParams();
+  const searchParams = useSearchParams();
+  const masterId = searchParams.get("startapp");
 
   const [master, setMaster] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [tgUser, setTgUser] = useState<any>(null);
+
 
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
