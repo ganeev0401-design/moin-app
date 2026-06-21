@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function CreateMasterPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [telegramId, setTelegramId] = useState<string | null>(null);
+
+  // 💡 получаем Telegram user
+  useEffect(() => {
+    const tg =
+      typeof window !== "undefined"
+        ? (window as any).Telegram?.WebApp
+        : null;
+
+    const userId = tg?.initDataUnsafe?.user?.id;
+
+    if (userId) {
+      setTelegramId(String(userId));
+    } else {
+      console.log("⚠️ Telegram user not found (open inside Telegram)");
+    }
+  }, []);
 
   const handleCreate = async () => {
     if (!name) {
@@ -15,9 +32,30 @@ export default function CreateMasterPage() {
 
     setLoading(true);
 
+    // 💥 ВАЖНО: защита от дублей (если уже есть мастер)
+    if (telegramId) {
+      const { data: existing } = await supabase
+        .from("masters")
+        .select("*")
+        .eq("telegram_id", telegramId)
+        .single();
+
+      if (existing) {
+        localStorage.setItem("master_id", existing.id);
+        window.location.href = `/dashboard?master_id=${existing.id}`;
+        return;
+      }
+    }
+
+    // 💡 создаём мастера
     const { data, error } = await supabase
       .from("masters")
-      .insert([{ name }])
+      .insert([
+        {
+          name,
+          telegram_id: telegramId, // 🔥 ВОТ ГЛАВНЫЙ ФИКС
+        },
+      ])
       .select()
       .single();
 
@@ -29,18 +67,24 @@ export default function CreateMasterPage() {
       return;
     }
 
-    // сохраняем мастера
+    // 💾 сохраняем локально
     localStorage.setItem("master_id", data.id);
 
     alert("Мастер создан!");
 
-    // редирект в кабинет
+    // 🚀 переход в кабинет
     window.location.href = `/dashboard?master_id=${data.id}`;
   };
 
   return (
     <div style={{ padding: 20 }}>
       <h1>Создай свою страницу записи</h1>
+
+      {!telegramId && (
+        <div style={{ color: "red", marginBottom: 10 }}>
+          ⚠️ Открой это внутри Telegram Mini App
+        </div>
+      )}
 
       <input
         placeholder="Твоё имя (например: Алина)"
