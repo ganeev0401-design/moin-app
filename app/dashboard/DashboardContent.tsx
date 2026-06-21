@@ -16,42 +16,70 @@ export default function DashboardContent() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
 
-  // ✅ берем master_id из URL или localStorage
-  const masterId =
-    masterIdParam || (typeof window !== "undefined"
-      ? localStorage.getItem("master_id")
-      : null);
+  // Telegram user
+  const tg =
+    typeof window !== "undefined"
+      ? (window as any).Telegram?.WebApp
+      : null;
 
-  // ✅ ссылка для клиента
-  const botLink = master
-  ? `https://t.me/moinhelp_bot?startapp=${master.id}`
-  : "";
+  const telegramId = tg?.initDataUnsafe?.user?.id;
 
-  useEffect(() => {
-    if (!masterId) return;
-    localStorage.setItem("master_id", masterId);
-    loadData();
-  }, [masterId]);
-
-  const loadData = async () => {
-    setLoading(true);
-
+  const loadData = async (id: string) => {
     const { data: masterData } = await supabase
       .from("masters")
       .select("*")
-      .eq("id", masterId)
+      .eq("id", id)
       .single();
 
     const { data: servicesData } = await supabase
       .from("services")
       .select("*")
-      .eq("master_id", masterId);
+      .eq("master_id", id);
 
     setMaster(masterData);
     setServices(servicesData || []);
-
     setLoading(false);
   };
+
+  const init = async () => {
+    setLoading(true);
+
+    let currentMasterId: string | null = masterIdParam;
+
+    // 1. ищем по Telegram
+    if (!currentMasterId && telegramId) {
+      const { data } = await supabase
+        .from("masters")
+        .select("*")
+        .eq("telegram_id", telegramId)
+        .single();
+
+      if (data) {
+        currentMasterId = data.id;
+        localStorage.setItem("master_id", data.id);
+      }
+    }
+
+    // 2. fallback localStorage
+    if (!currentMasterId) {
+      const saved = localStorage.getItem("master_id");
+      if (saved) currentMasterId = saved;
+    }
+
+    // 3. если нет мастера
+    if (!currentMasterId) {
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem("master_id", currentMasterId);
+
+    await loadData(currentMasterId);
+  };
+
+  useEffect(() => {
+    init();
+  }, []);
 
   const addService = async () => {
     if (!serviceName || !price || !duration) {
@@ -60,7 +88,7 @@ export default function DashboardContent() {
     }
 
     await supabase.from("services").insert({
-      master_id: masterId,
+      master_id: master.id,
       name: serviceName,
       price: Number(price),
       duration_minutes: Number(duration),
@@ -72,11 +100,30 @@ export default function DashboardContent() {
 
     alert("Услуга добавлена ✅");
 
-    loadData();
+    const { data: servicesData } = await supabase
+      .from("services")
+      .select("*")
+      .eq("master_id", master.id);
+
+    setServices(servicesData || []);
   };
 
-  if (loading) return <div style={{ padding: 20 }}>Загрузка...</div>;
-  if (!master) return <div style={{ padding: 20 }}>Мастер не найден</div>;
+  const botLink = master
+    ? `https://t.me/moinhelp_bot?startapp=${master.id}`
+    : "";
+
+  if (loading) {
+    return <div style={{ padding: 20 }}>Загрузка...</div>;
+  }
+
+  if (!master) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2>Создай свою страницу записи</h2>
+        <p>Похоже, у тебя ещё нет профиля мастера</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -84,7 +131,7 @@ export default function DashboardContent() {
 
       <h2>{master.name}</h2>
 
-      {/* 🔥 ГЛАВНОЕ — ССЫЛКА */}
+      {/* 🔗 ССЫЛКА */}
       <div style={{ marginTop: 20 }}>
         <h3>🔗 Твоя ссылка для клиентов</h3>
 
@@ -108,7 +155,7 @@ export default function DashboardContent() {
 
       <hr />
 
-      {/* ➕ ДОБАВЛЕНИЕ УСЛУГИ */}
+      {/* ➕ УСЛУГИ */}
       <h3>Добавить услугу</h3>
 
       <input
@@ -129,29 +176,25 @@ export default function DashboardContent() {
         onChange={(e) => setDuration(e.target.value)}
       />
 
-      <div>
-        <button onClick={addService}>
-          ➕ Добавить
-        </button>
-      </div>
+      <button onClick={addService}>➕ Добавить</button>
 
       <hr />
 
-      {/* 📋 СПИСОК УСЛУГ */}
+      {/* 📋 СПИСОК */}
       <h3>Услуги</h3>
 
       {services.length === 0 && <div>Пока нет услуг</div>}
 
       {services.map((s) => (
-        <div key={s.id} style={{ marginBottom: 10 }}>
+        <div key={s.id}>
           <b>{s.name}</b> — {s.price}₽ — {s.duration_minutes} мин
         </div>
       ))}
 
       <hr />
 
-      {/* 🧠 ONBOARDING */}
-      <div style={{ marginTop: 20 }}>
+      {/* 🧠 ИНСТРУКЦИЯ */}
+      <div>
         <h3>Как это работает:</h3>
         <p>1. Добавь услуги</p>
         <p>2. Скопируй ссылку</p>
