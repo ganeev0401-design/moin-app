@@ -15,6 +15,10 @@ export default function DashboardContent() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
 
+  const botLink = masterId
+  ? `https://t.me/moinhelp_bot/app?startapp=${masterId}`
+  : "";
+
   useEffect(() => {
     if (!masterId) return;
     loadData();
@@ -85,6 +89,29 @@ export default function DashboardContent() {
         Добавить
       </button>
 
+      
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(botLink);
+          alert("Ссылка скопирована!");
+        }}
+      >
+        Скопировать ссылку
+      </button>
+
+      <hr />
+
+      <h3>Ссылка для записи клиентов</h3>
+
+      {botLink && (
+        <div>
+          <a href={botLink} target="_blank">
+            {botLink}
+          </a>
+        </div>
+      )}
+
+
       <hr />
 
       <h3>Услуги</h3>
@@ -95,5 +122,6 @@ export default function DashboardContent() {
         </div>
       ))}
     </div>
+    
   );
 }

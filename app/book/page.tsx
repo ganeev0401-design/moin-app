@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -111,20 +113,40 @@ export default function BookPage() {
     );
 
     const { error } = await supabase.from("bookings").insert({
-      master_id: masterId,
-      service_id: selectedService.id,
-      client_name: clientName,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-    });
+        master_id: masterId,
+        service_id: selectedService.id,
+        client_name: clientName,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+      });
 
-    if (error) {
-      console.log(error);
-      return;
-    }
+      if (error) {
+        console.log(error);
+        return;
+      }
 
-    alert("Вы записаны!");
+      // УВЕДОМЛЕНИЕ
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chatId: master.telegram_id,
+          text: `💅 Новая запись!
+
+      👤 Клиент: ${clientName}
+      💅 Услуга: ${selectedService.name}
+      📅 Дата: ${date}
+      ⏰ Время: ${selectedTime}`,
+      parse_mode: "HTML"
+        }),
+      });
+
+      alert("Вы записаны!");
   };
+
+  
 
   // -----------------------------
   // UI
