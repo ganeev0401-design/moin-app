@@ -17,12 +17,16 @@ export default function CreateMasterPage() {
 
     const userId = tg?.initDataUnsafe?.user?.id;
 
+     tg.ready();        // 🔥 ВАЖНО
+     tg.expand();       // 🔥 делает full screen
+
     if (userId) {
       setTelegramId(String(userId));
     } else {
       console.log("⚠️ Telegram user not found (open inside Telegram)");
     }
   }, []);
+  
 
   const handleCreate = async () => {
     if (!name) {
