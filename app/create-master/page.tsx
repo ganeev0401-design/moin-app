@@ -73,6 +73,9 @@ export default function CreateMasterPage() {
 
     setLoading(false);
 
+    console.log("TG OBJECT:", (window as any).Telegram?.WebApp);
+    console.log("USER:", (window as any).Telegram?.WebApp?.initDataUnsafe?.user);
+
     if (error) {
       console.log(error);
       alert("Ошибка при создании");
