@@ -17,6 +17,8 @@ export default function CreateMasterPage() {
 
   if (!tg) return;
 
+  console.log("TG RAW:", tg);
+
   tg.ready();
   tg.expand();
 
@@ -78,6 +80,7 @@ export default function CreateMasterPage() {
     console.log("WINDOW:", window);
     console.log("TG:", (window as any).Telegram);
     console.log("WEBAPP:", (window as any).Telegram?.WebApp);
+    
 
     if (error) {
       console.log(error);
