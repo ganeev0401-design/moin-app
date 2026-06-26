@@ -75,6 +75,9 @@ export default function CreateMasterPage() {
 
     console.log("TG OBJECT:", (window as any).Telegram?.WebApp);
     console.log("USER:", (window as any).Telegram?.WebApp?.initDataUnsafe?.user);
+    console.log("WINDOW:", window);
+    console.log("TG:", (window as any).Telegram);
+    console.log("WEBAPP:", (window as any).Telegram?.WebApp);
 
     if (error) {
       console.log(error);
