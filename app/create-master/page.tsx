@@ -17,8 +17,10 @@ export default function CreateMasterPage() {
 
     const userId = tg?.initDataUnsafe?.user?.id;
 
-     tg.ready();        // 🔥 ВАЖНО
-     tg.expand();       // 🔥 делает full screen
+    if (tg) {
+      tg.ready();
+      tg.expand();
+}
 
     if (userId) {
       setTelegramId(String(userId));
@@ -42,7 +44,7 @@ export default function CreateMasterPage() {
         .from("masters")
         .select("*")
         .eq("telegram_id", telegramId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         localStorage.setItem("master_id", existing.id);
@@ -57,7 +59,7 @@ export default function CreateMasterPage() {
       .insert([
         {
           name,
-          telegram_id: telegramId, // 🔥 ВОТ ГЛАВНЫЙ ФИКС
+          telegram_id: telegramId || null // 🔥 ВОТ ГЛАВНЫЙ ФИКС
         },
       ])
       .select()
