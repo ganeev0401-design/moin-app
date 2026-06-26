@@ -10,24 +10,30 @@ export default function CreateMasterPage() {
 
   // 💡 получаем Telegram user
   useEffect(() => {
-    const tg =
-      typeof window !== "undefined"
-        ? (window as any).Telegram?.WebApp
-        : null;
+  const tg =
+    typeof window !== "undefined"
+      ? (window as any).Telegram?.WebApp
+      : null;
 
-    const userId = tg?.initDataUnsafe?.user?.id;
+  if (!tg) return;
 
-    if (tg) {
-      tg.ready();
-      tg.expand();
-}
+  tg.ready();
+  tg.expand();
 
-    if (userId) {
-      setTelegramId(String(userId));
+  const tryGetUser = () => {
+    const user = tg.initDataUnsafe?.user;
+
+    if (user?.id) {
+      setTelegramId(String(user.id));
+      console.log("✅ Telegram user:", user.id);
     } else {
-      console.log("⚠️ Telegram user not found (open inside Telegram)");
+      console.log("⏳ Waiting for Telegram user...");
+      setTimeout(tryGetUser, 300);
     }
-  }, []);
+  };
+
+  tryGetUser();
+}, []);
   
 
   const handleCreate = async () => {
@@ -59,7 +65,7 @@ export default function CreateMasterPage() {
       .insert([
         {
           name,
-          telegram_id: telegramId || null // 🔥 ВОТ ГЛАВНЫЙ ФИКС
+          telegram_id: telegramId, // 🔥 ВОТ ГЛАВНЫЙ ФИКС
         },
       ])
       .select()
