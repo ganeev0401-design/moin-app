@@ -66,9 +66,10 @@ export default function DashboardContent() {
 
   console.log("SERVICES:", servicesData);
 
-  setMaster(masterData);
-  setServices(servicesData || []);
+  setMaster(masterData ?? undefined);
+  setServices(servicesData ?? []);
   setLoading(false);
+  setBooting(false);
 };
 
   // =========================
@@ -167,9 +168,21 @@ export default function DashboardContent() {
   // =========================
   // LOADING STATE
   // =========================
-  if (booting || loading) {
-    return <div style={{ padding: 20 }}>Загрузка...</div>;
-  }
+  if (loading || booting) {
+  return <div style={{ padding: 20 }}>Загрузка...</div>;
+    }
+
+    if (master === undefined) {
+      return <div style={{ padding: 20 }}>Загрузка...</div>;
+    }
+
+    if (master === null) {
+      return (
+        <div style={{ padding: 20 }}>
+          <h2>Создай свою страницу записи</h2>
+        </div>
+      );
+    }
 
   // =========================
   // NO MASTER STATE
