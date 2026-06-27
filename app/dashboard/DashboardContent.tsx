@@ -16,14 +16,30 @@ export default function DashboardContent() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
 
-  // Telegram user
-  const tg =
-    typeof window !== "undefined"
-      ? (window as any).Telegram?.WebApp
-      : null;
+  // ✅ Telegram ID теперь через state (ВАЖНО FIX)
+  const [telegramId, setTelegramId] = useState<string | null>(null);
 
-  const telegramId = tg?.initDataUnsafe?.user?.id;
+  // =========================
+  // 🔥 TELEGRAM INIT FIX
+  // =========================
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
+    const tg = (window as any).Telegram?.WebApp;
+
+    tg?.ready();
+    tg?.expand();
+
+    const userId = tg?.initDataUnsafe?.user?.id;
+
+    if (userId) {
+      setTelegramId(userId);
+    }
+  }, []);
+
+  // =========================
+  // 📦 LOAD MASTER + SERVICES
+  // =========================
   const loadData = async (id: string) => {
     const { data: masterData } = await supabase
       .from("masters")
@@ -41,12 +57,15 @@ export default function DashboardContent() {
     setLoading(false);
   };
 
+  // =========================
+  // 🚀 INIT LOGIC FIXED
+  // =========================
   const init = async () => {
     setLoading(true);
 
     let currentMasterId: string | null = masterIdParam;
 
-    // 1. ищем по Telegram
+    // 1. ищем по Telegram ID (НО теперь он стабильный)
     if (!currentMasterId && telegramId) {
       const { data } = await supabase
         .from("masters")
@@ -66,7 +85,7 @@ export default function DashboardContent() {
       if (saved) currentMasterId = saved;
     }
 
-    // 3. если нет мастера
+    // 3. если всё ещё нет мастера
     if (!currentMasterId) {
       setLoading(false);
       return;
@@ -77,10 +96,16 @@ export default function DashboardContent() {
     await loadData(currentMasterId);
   };
 
+  // ⚠️ FIX: init ждёт telegramId
   useEffect(() => {
-    init();
-  }, []);
+    if (telegramId !== null) {
+      init();
+    }
+  }, [telegramId]);
 
+  // =========================
+  // ➕ ADD SERVICE
+  // =========================
   const addService = async () => {
     if (!serviceName || !price || !duration) {
       alert("Заполни все поля");
@@ -108,14 +133,23 @@ export default function DashboardContent() {
     setServices(servicesData || []);
   };
 
+  // =========================
+  // 🔗 BOT LINK FIX
+  // =========================
   const botLink = master
-    ? `https://t.me/moinhelp_bot?startapp=${master.id}`
+    ? `https://t.me/MoinHelp_bot?startapp=${master.id}`
     : "";
 
+  // =========================
+  // LOADING STATE
+  // =========================
   if (loading) {
     return <div style={{ padding: 20 }}>Загрузка...</div>;
   }
 
+  // =========================
+  // NO MASTER STATE
+  // =========================
   if (!master) {
     return (
       <div style={{ padding: 20 }}>
@@ -125,13 +159,16 @@ export default function DashboardContent() {
     );
   }
 
+  // =========================
+  // UI
+  // =========================
   return (
     <div style={{ padding: 20 }}>
       <h1>💼 Твой кабинет мастера</h1>
 
       <h2>{master.name}</h2>
 
-      {/* 🔗 ССЫЛКА */}
+      {/* 🔗 LINK */}
       <div style={{ marginTop: 20 }}>
         <h3>🔗 Твоя ссылка для клиентов</h3>
 
@@ -155,7 +192,7 @@ export default function DashboardContent() {
 
       <hr />
 
-      {/* ➕ УСЛУГИ */}
+      {/* ➕ SERVICES */}
       <h3>Добавить услугу</h3>
 
       <input
@@ -180,7 +217,7 @@ export default function DashboardContent() {
 
       <hr />
 
-      {/* 📋 СПИСОК */}
+      {/* 📋 LIST */}
       <h3>Услуги</h3>
 
       {services.length === 0 && <div>Пока нет услуг</div>}
@@ -193,7 +230,7 @@ export default function DashboardContent() {
 
       <hr />
 
-      {/* 🧠 ИНСТРУКЦИЯ */}
+      {/* 🧠 HELP */}
       <div>
         <h3>Как это работает:</h3>
         <p>1. Добавь услуги</p>
