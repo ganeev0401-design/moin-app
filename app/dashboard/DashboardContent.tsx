@@ -16,6 +16,8 @@ export default function DashboardContent() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
 
+  const [booting, setBooting] = useState(true);
+
   // ✅ Telegram ID теперь через state (ВАЖНО FIX)
   const [telegramId, setTelegramId] = useState<string | null>(null);
 
@@ -34,6 +36,8 @@ export default function DashboardContent() {
 
     if (userId) {
       setTelegramId(userId);
+    } else {
+      setBooting(false);
     }
   }, []);
 
@@ -60,17 +64,17 @@ export default function DashboardContent() {
   // =========================
   // 🚀 INIT LOGIC FIXED
   // =========================
-  const init = async () => {
+  const init = async (tgUserId: string | null) => {
     setLoading(true);
 
     let currentMasterId: string | null = masterIdParam;
 
     // 1. ищем по Telegram ID (НО теперь он стабильный)
-    if (!currentMasterId && telegramId) {
+    if (!currentMasterId && tgUserId) {
       const { data } = await supabase
         .from("masters")
         .select("*")
-        .eq("telegram_id", telegramId)
+        .eq("telegram_id", tgUserId)
         .single();
 
       if (data) {
@@ -94,14 +98,16 @@ export default function DashboardContent() {
     localStorage.setItem("master_id", currentMasterId);
 
     await loadData(currentMasterId);
+
+    setBooting(false);
   };
 
   // ⚠️ FIX: init ждёт telegramId
   useEffect(() => {
-    if (telegramId !== null) {
-      init();
-    }
-  }, [telegramId]);
+      if (telegramId !== null) {
+        init(telegramId);
+      }
+    }, [telegramId]);
 
   // =========================
   // ➕ ADD SERVICE
@@ -137,13 +143,13 @@ export default function DashboardContent() {
   // 🔗 BOT LINK FIX
   // =========================
   const botLink = master
-    ? `https://t.me/MoinHelp_bot?startapp=${master.id}`
+    ? `https://t.me/MoinHelh_bot?startapp=${master.id}`
     : "";
 
   // =========================
   // LOADING STATE
   // =========================
-  if (loading) {
+  if (booting || loading) {
     return <div style={{ padding: 20 }}>Загрузка...</div>;
   }
 
