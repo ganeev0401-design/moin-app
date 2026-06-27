@@ -5,8 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { useSearchParams } from "next/navigation";
 
 export default function DashboardContent() {
-  const searchParams = useSearchParams();
-  const masterIdParam = searchParams.get("startapp");
+  //const searchParams = useSearchParams();
+  const masterIdParam = null;
 
   const [master, setMaster] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
@@ -100,6 +100,7 @@ export default function DashboardContent() {
     await loadData(currentMasterId);
 
     setBooting(false);
+    setLoading(false);
   };
 
   // ⚠️ FIX: init ждёт telegramId

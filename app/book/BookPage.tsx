@@ -12,8 +12,10 @@ import { getTelegramUser } from "@/lib/telegram";
 
 export default function BookPage() {
   //const { masterId } = useParams();
-  const searchParams = useSearchParams();
-  const masterId = searchParams.get("startapp");
+  const Params = useSearchParams();
+  const masterId =
+  Params.get("startapp") ||
+  Params.get("masterId");
 
   const [master, setMaster] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
