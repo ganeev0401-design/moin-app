@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useSearchParams } from "next/navigation";
 
+console.log("🔥 DASHBOARD LOADED");
+
 export default function DashboardContent() {
   const masterIdParam = null;
 
@@ -46,22 +48,28 @@ export default function DashboardContent() {
   // 📦 LOAD MASTER + SERVICES
   // =========================
   const loadData = async (id: string) => {
-    const { data: masterData } = await supabase
-      .from("masters")
-      .select("*")
-      .eq("id", id)
-      .single();
-      console.log("LOAD MASTER ID:", id);
+  console.log("🔍 TRY LOAD MASTER ID:", id);
 
-    const { data: servicesData } = await supabase
-      .from("services")
-      .select("*")
-      .eq("master_id", id);
+  const { data: masterData, error: masterError } = await supabase
+    .from("masters")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-    setMaster(masterData);
-    setServices(servicesData || []);
-    setLoading(false);
-  };
+  console.log("MASTER DATA:", masterData);
+  console.log("MASTER ERROR:", masterError);
+
+  const { data: servicesData } = await supabase
+    .from("services")
+    .select("*")
+    .eq("master_id", id);
+
+  console.log("SERVICES:", servicesData);
+
+  setMaster(masterData);
+  setServices(servicesData || []);
+  setLoading(false);
+};
 
   // =========================
   // 🚀 INIT LOGIC FIXED
