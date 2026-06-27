@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { useSearchParams } from "next/navigation";
 
 export default function DashboardContent() {
-  //const searchParams = useSearchParams();
   const masterIdParam = null;
 
   const [master, setMaster] = useState<any>(null);
@@ -17,6 +16,8 @@ export default function DashboardContent() {
   const [duration, setDuration] = useState("");
 
   const [booting, setBooting] = useState(true);
+
+  
 
   // ✅ Telegram ID теперь через state (ВАЖНО FIX)
   const [telegramId, setTelegramId] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export default function DashboardContent() {
       .select("*")
       .eq("id", id)
       .single();
+      console.log("LOAD MASTER ID:", id);
 
     const { data: servicesData } = await supabase
       .from("services")
@@ -64,44 +66,51 @@ export default function DashboardContent() {
   // =========================
   // 🚀 INIT LOGIC FIXED
   // =========================
-  const init = async (tgUserId: string | null) => {
-    setLoading(true);
+ const init = async (tgUserId: string | null) => {
+  setLoading(true);
 
-    let currentMasterId: string | null = masterIdParam;
+  let currentMasterId: string | null = null;
 
-    // 1. ищем по Telegram ID (НО теперь он стабильный)
-    if (!currentMasterId && tgUserId) {
-      const { data } = await supabase
-        .from("masters")
-        .select("*")
-        .eq("telegram_id", tgUserId)
-        .single();
+  console.log("TG USER:", tgUserId);
+  console.log("PARAM:", masterIdParam);
 
-      if (data) {
-        currentMasterId = data.id;
-        localStorage.setItem("master_id", data.id);
-      }
+  // 1. ИЩЕМ ПО TELEGRAM ID → ПОЛУЧАЕМ UUID
+  if (tgUserId) {
+    const { data } = await supabase
+      .from("masters")
+      .select("*")
+      .eq("telegram_id", tgUserId)
+      .single();
+
+    if (data) {
+      currentMasterId = data.id; // ⚠️ ВОТ ЭТО КЛЮЧ
+      localStorage.setItem("master_id", data.id);
     }
+  }
 
-    // 2. fallback localStorage
-    if (!currentMasterId) {
-      const saved = localStorage.getItem("master_id");
-      if (saved) currentMasterId = saved;
-    }
+  // 2. PARAM = UUID мастера (НЕ telegram_id)
+  if (!currentMasterId && masterIdParam) {
+    currentMasterId = masterIdParam;
+  }
 
-    // 3. если всё ещё нет мастера
-    if (!currentMasterId) {
-      setLoading(false);
-      return;
-    }
+  // 3. fallback
+  if (!currentMasterId) {
+    const saved = localStorage.getItem("master_id");
+    if (saved) currentMasterId = saved;
+  }
 
-    localStorage.setItem("master_id", currentMasterId);
+  console.log("FINAL MASTER ID:", currentMasterId);
 
-    await loadData(currentMasterId);
-
-    setBooting(false);
+  if (!currentMasterId) {
     setLoading(false);
-  };
+    return;
+  }
+
+  await loadData(currentMasterId);
+
+  setBooting(false);
+  setLoading(false);
+};
 
   // ⚠️ FIX: init ждёт telegramId
   useEffect(() => {
