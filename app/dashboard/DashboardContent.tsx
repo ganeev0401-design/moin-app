@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 
 export default function DashboardContent() {
   const searchParams = useSearchParams();
-  const masterIdParam = searchParams.get("master_id");
+  const masterIdParam = searchParams.get("startapp");
 
   const [master, setMaster] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
